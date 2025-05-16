@@ -1,0 +1,1 @@
+from .GameOfLifeBicocca import *

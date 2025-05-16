@@ -1,15 +1,12 @@
-
-
-
-%matplotlib widget
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-
 class GameOfLife :
+
     def __init__(self,n) :
         self.fTable = np.zeros((n,n),dtype=int)
+        self.fSize = n
 
     def Print(self) :
         print(self.fTable,"\n")
@@ -17,6 +14,10 @@ class GameOfLife :
     def Initialize(self,listin) :
         NRow, NCol = zip(*listin)
         self.fTable[NRow,NCol] = 1 
+
+    def InitializeRandom(self,NPoints) :
+        listin = np.random.randint(0,self.fSize,size=(NPoints,2))
+        self.Initialize(listin)
 
     def Update(self) : 
         kernel = np.array([ #kernel to multiply to the whole table 
@@ -39,8 +40,9 @@ class GameOfLife :
 
     def GetTable (self) :
         return self.fTable
+        
 
-    def EndlessMode(self,imgsize=(5,5),timeInterval = 200) : #old bugged version, but the bug consisted in never stopping -> use at your own risk!!!!! 
+    def PlaySteps(self,outfile,NSteps,imgsize=(5,5),timeInterval = 500) : #plays the game and gives back the animation of the game
         
         fig, ax = plt.subplots(figsize=imgsize)
         cax = ax.imshow(self.GetTable(), cmap='Greys')
@@ -50,26 +52,9 @@ class GameOfLife :
             return [cax]
         
         def update(frames):
-            self.Update()
-            cax.set_data(self.GetTable())
-            return [cax]
-              
-        ani = FuncAnimation(fig, update, init_func=init, frames=50, interval=timeInterval, blit=True)
-        plt.show()
-
-        return ani
-        
-
-    def PlaySteps(self,NSteps,imgsize=(5,5),timeInterval = 500) : #plays the game and gives back the animation of the game
-        
-        fig, ax = plt.subplots(figsize=imgsize)
-        cax = ax.imshow(self.GetTable(), cmap='Greys')
-        
-        def init() :
-            cax.set_data(self.GetTable())
-            return [cax]
-        
-        def update(frames):
+            if frames == 0: #avoid updating the first time
+                return [cax]
+            
             self.Update()
             cax.set_data(self.GetTable())
             if frames == NSteps - 1 : #necessary to avoid a weird behavior of FuncAnimation that does not stop after NSteps 
@@ -78,32 +63,19 @@ class GameOfLife :
             return [cax]
               
         ani = FuncAnimation(fig, update, init_func=init, frames=NSteps, interval=timeInterval, blit=True)
-        plt.show()
+        
+        if (outfile == None ) :
+            plt.show()
+        else :
+            ani.save(outfile)
 
         return ani
+    
 
 
-Game = GameOfLife(20) #you can customize the size of the NxN table 
-Game.Initialize([(0,0),(2,0),(1,1),(1,2),(2,1)]) # the initializing array wants the positions of the alive points at the beginning
-Game.PlaySteps(50,timeInterval=200)
-
-
-
-
-
-Game2 = GameOfLife(100) #you can customize the size of the NxN table 
-rnd_points = np.random.randint(0,100,size=(5000,2))
-Game2.Initialize(rnd_points) # the initializing array wants the positions of the alive points at the beginning
-Game2.PlaySteps(100,(10,10),200)
-
-
-
-
-
-Game3 = GameOfLife(100) #you can customize the size of the NxN table 
-rnd_points = np.random.randint(0,100,size=(5000,2))
-Game3.Initialize(rnd_points) # the initializing array wants the positions of the alive points at the beginning
-Game3.EndlessMode((10,10),200)
-
+if __name__ == "__main__" :
+    Game = GameOfLife(20)
+    Game.Initialize([(0,0),(2,0),(1,1),(1,2),(2,1)])
+    Game.PlaySteps("Test.mp4",50,timeInterval=200)
 
 
